@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+package proposal;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./proto;proposal";
+
+service ProposalService {
+  rpc CreateProposal(CreateProposalRequest) returns (CreateProposalResponse);
+  rpc GetProposalByID(GetProposalRequest) returns (GetProposalResponse);
+  rpc UpdateProposal(UpdateProposalRequest) returns (UpdateProposalResponse);
+  rpc SaveTemplate(SaveTemplateRequest) returns (SaveTemplateResponse);
+  rpc GetTemplatesForFreelancer(GetTemplatesRequest) returns (GetTemplatesResponse);
+  rpc ListProposals(ListProposalsRequest) returns (ListProposalsResponse);
+}
+
+message CreateProposalRequest {
+  string client_id = 1;
+  string freelancer_id = 2;
+  string template_id = 3;
+  string title = 4;
+  string content = 5;
+  string status = 6; // "draft" | "sent" | "accepted" | "rejected"
+  int32 version = 7;
+  google.protobuf.Timestamp deadline = 8;
+}
+
+message CreateProposalResponse {
+  string proposal_id = 1;
+  string status = 2; 
+}
+
+message GetProposalRequest {
+  string proposal_id = 1;
+}
+
+message GetProposalResponse {
+  string proposal_id = 1;
+  string client_id = 2;
+  string freelancer_id = 3;
+  string template_id = 4;
+  string title = 5;
+  string content = 6;
+  string status = 7;
+  int32 version = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+message UpdateProposalRequest {
+  string proposal_id = 1;
+  string title = 2;
+  string content = 3;
+  int32 version = 4;
+  google.protobuf.Timestamp deadline = 5;
+}
+
+message UpdateProposalResponse {
+  string proposal_id = 1;
+  string status = 2; 
+  int32 new_version = 3;
+}
+
+message SaveTemplateRequest {
+  string freelancer_id = 1;
+  string title = 2;
+  string content = 3; 
+}
+
+message SaveTemplateResponse {
+  string template_id = 1;
+  string status = 2; 
+}
+
+message GetTemplatesRequest {
+  string freelancer_id = 1;
+}
+
+message GetTemplatesResponse {
+  repeated Template templates = 1;
+}
+
+message Template {
+  string template_id = 1;
+  string title = 2;
+  string content = 3;
+}
+
+message ListProposalsRequest {
+  string client_id = 1;
+  string freelancer_id = 2;
+  string status = 3;
+  int64 skip = 4;   
+  int64 limit = 5;  
+}
+
+message ListProposalsResponse {
+  repeated Proposal proposals = 1;
+}
+
+message Proposal {
+  string proposal_id = 1;
+  string client_id = 2;
+  string freelancer_id = 3;
+  string template_id = 4;
+  string title = 5;
+  string content = 6;
+  string status = 7;
+  int32 version = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
