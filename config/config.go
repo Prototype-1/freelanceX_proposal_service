@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-
 	"github.com/joho/godotenv"
 )
 
@@ -31,7 +30,7 @@ func LoadConfig() *Config {
 
 	serverPort := os.Getenv("SERVER_PORT")
 	if serverPort == "" {
-		serverPort = ":50051" 
+		serverPort = ":50052" 
 	}
 
 	return &Config{
