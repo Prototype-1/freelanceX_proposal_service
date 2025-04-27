@@ -59,27 +59,27 @@ func (r *ProposalRepository) UpdateProposal(ctx context.Context, proposalID stri
 		return nil, fmt.Errorf("invalid proposal ID: %w", err)
 	}
 
-	var existingProposal model.Proposal
-	err = collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&existingProposal)
-	if err != nil {
-		return nil, fmt.Errorf("proposal with ID %s not found: %w", proposalID, err)
+	updateFields := bson.M{
+		"title":        update.Title,
+		"content":      update.Content,
+		"status":       update.Status,
+		"updated_at":   time.Now(),
+		"version":      bson.M{"$inc": 1},
 	}
 
-	update.ID = objID
-	update.Version = existingProposal.Version + 1
-	update.CreatedAt = existingProposal.CreatedAt
-	update.UpdatedAt = time.Now()
-
-	_, err = collection.ReplaceOne(
+	updateResult := collection.FindOneAndUpdate(
 		ctx,
 		bson.M{"_id": objID},
-		update,
+		bson.M{"$set": updateFields, "$inc": bson.M{"version": 1}},
+		options.FindOneAndUpdate().SetReturnDocument(options.After),
 	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to update proposal: %w", err)
+
+	var updatedProposal model.Proposal
+	if err := updateResult.Decode(&updatedProposal); err != nil {
+		return nil, fmt.Errorf("failed to decode updated proposal: %w", err)
 	}
 
-	return &update, nil
+	return &updatedProposal, nil
 }
 
 func (r *ProposalRepository) GetProposals(ctx context.Context, filters map[string]interface{}, skip, limit int64) ([]*model.Proposal, error) {

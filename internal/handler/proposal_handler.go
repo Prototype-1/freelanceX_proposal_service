@@ -40,7 +40,7 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
 	}, nil
 }
 
-func (h *ProposalHandler) GetProposal(ctx context.Context, req *pb.GetProposalRequest) (*pb.GetProposalResponse, error) {
+func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetProposalRequest) (*pb.GetProposalResponse, error) {
 	proposal, err := h.service.GetProposalByID(ctx, req.GetProposalId())
 	if err != nil {
 		return nil, err
