@@ -14,6 +14,7 @@ type Proposal struct {
 	Content     string             `bson:"content"`
 	Status      string             `bson:"status"` // "draft" | "sent" | "accepted" | "rejected"
 	Version     int                `bson:"version"`
+	Deadline     time.Time          `bson:"deadline"`
 	CreatedAt   time.Time          `bson:"created_at"`
 	UpdatedAt   time.Time          `bson:"updated_at"`
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/model"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/repository"
 )
@@ -28,6 +29,11 @@ func (s *ProposalService) GetProposalByID(ctx context.Context, id string) (*mode
 }
 
 func (s *ProposalService) UpdateProposal(ctx context.Context, id string, updatedProposal model.Proposal) (*model.Proposal, error) {
+
+	if !updatedProposal.Deadline.IsZero() && updatedProposal.Deadline.Before(time.Now()) {
+		return nil, fmt.Errorf("cannot set the deadline to a past date")
+	}
+
 	return s.repo.UpdateProposal(ctx, id, updatedProposal)
 }
 

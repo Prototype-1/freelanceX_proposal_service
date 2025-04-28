@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 	"github.com/Prototype-1/freelanceX_proposal_service/config"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/handler"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/repository"
@@ -27,6 +28,20 @@ func main() {
 	proposalService := service.NewProposalService(proposalRepo)
 	proposalHandler := handler.NewProposalHandler(proposalService)
 
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute) // Run every 5 minutes
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				log.Println("Checking and expiring proposals...")
+				if err := proposalRepo.ExpireProposals(nil); err != nil {
+					log.Printf("Error expiring proposals: %v", err)
+				}
+			}
+		}
+	}()
 
 	lis, err := net.Listen("tcp", cfg.ServerPort)
 	if err != nil {

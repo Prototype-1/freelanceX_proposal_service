@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
+	"time"
 )
 
 type ProposalHandler struct {
@@ -23,6 +24,12 @@ func NewProposalHandler(service *service.ProposalService) *ProposalHandler {
 func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProposalRequest) (*pb.CreateProposalResponse, error) {
 	var templateID primitive.ObjectID
 	var err error
+
+	deadline := time.Time{}
+	if req.GetDeadline() != nil {
+		deadline = req.GetDeadline().AsTime()
+	}
+
 
 	if req.GetTemplateId() != "" {
 		templateID, err = primitive.ObjectIDFromHex(req.GetTemplateId())
@@ -41,6 +48,7 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
 		Content:      req.GetContent(),
 		Status:       "draft",
 		Version:      1,
+		Deadline:     deadline,
 	}
 
 	createdProposal, err := h.service.CreateProposal(ctx, proposal)
@@ -78,6 +86,10 @@ func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProp
 	update := model.Proposal{
 		Title:   req.GetTitle(),
 		Content: req.GetContent(),
+	}
+
+	if req.GetDeadline() != nil {
+		update.Deadline = req.GetDeadline().AsTime()
 	}
 
 	updatedProposal, err := h.service.UpdateProposal(ctx, req.GetProposalId(), update)

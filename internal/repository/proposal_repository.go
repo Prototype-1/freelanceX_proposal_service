@@ -67,6 +67,10 @@ func (r *ProposalRepository) UpdateProposal(ctx context.Context, proposalID stri
 		"version":      bson.M{"$inc": 1},
 	}
 
+	if !update.Deadline.IsZero() {
+		updateFields["deadline"] = update.Deadline
+	}
+
 	updateResult := collection.FindOneAndUpdate(
 		ctx,
 		bson.M{"_id": objID},
@@ -178,3 +182,27 @@ func (r *ProposalRepository) EnsureIndexes(ctx context.Context) error {
 
 	return nil
 }
+
+func (r *ProposalRepository) ExpireProposals(ctx context.Context) error {
+	collection := r.client.Database("freelanceX_proposals").Collection("proposals")
+
+	filter := bson.M{
+		"status": bson.M{"$in": []string{"draft", "sent"}},
+		"deadline": bson.M{"$lt": time.Now()},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"status": "expired",
+			"updated_at": time.Now(),
+		},
+	}
+
+	_, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to expire proposals: %w", err)
+	}
+
+	return nil
+}
+
