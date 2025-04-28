@@ -46,6 +46,7 @@ message GetProposalResponse {
   int32 version = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
+  google.protobuf.Timestamp deadline = 11;
 }
 
 message UpdateProposalRequest {

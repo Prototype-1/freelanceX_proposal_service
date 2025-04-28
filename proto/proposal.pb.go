@@ -230,6 +230,7 @@ type GetProposalResponse struct {
 	Version       int32                  `protobuf:"varint,8,opt,name=version,proto3" json:"version,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Deadline      *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=deadline,proto3" json:"deadline,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -330,6 +331,13 @@ func (x *GetProposalResponse) GetCreatedAt() *timestamppb.Timestamp {
 func (x *GetProposalResponse) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *GetProposalResponse) GetDeadline() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Deadline
 	}
 	return nil
 }
@@ -987,7 +995,7 @@ const file_proto_proposal_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"5\n" +
 	"\x12GetProposalRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
-	"proposalId\"\xf1\x02\n" +
+	"proposalId\"\xa9\x03\n" +
 	"\x13GetProposalResponse\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
 	"proposalId\x12\x1b\n" +
@@ -1003,7 +1011,8 @@ const file_proto_proposal_proto_rawDesc = "" +
 	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xba\x01\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
+	"\bdeadline\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\"\xba\x01\n" +
 	"\x15UpdateProposalRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
 	"proposalId\x12\x14\n" +
@@ -1100,28 +1109,29 @@ var file_proto_proposal_proto_depIdxs = []int32{
 	14, // 0: proposal.CreateProposalRequest.deadline:type_name -> google.protobuf.Timestamp
 	14, // 1: proposal.GetProposalResponse.created_at:type_name -> google.protobuf.Timestamp
 	14, // 2: proposal.GetProposalResponse.updated_at:type_name -> google.protobuf.Timestamp
-	14, // 3: proposal.UpdateProposalRequest.deadline:type_name -> google.protobuf.Timestamp
-	10, // 4: proposal.GetTemplatesResponse.templates:type_name -> proposal.Template
-	13, // 5: proposal.ListProposalsResponse.proposals:type_name -> proposal.Proposal
-	14, // 6: proposal.Proposal.created_at:type_name -> google.protobuf.Timestamp
-	14, // 7: proposal.Proposal.updated_at:type_name -> google.protobuf.Timestamp
-	0,  // 8: proposal.ProposalService.CreateProposal:input_type -> proposal.CreateProposalRequest
-	2,  // 9: proposal.ProposalService.GetProposalByID:input_type -> proposal.GetProposalRequest
-	4,  // 10: proposal.ProposalService.UpdateProposal:input_type -> proposal.UpdateProposalRequest
-	6,  // 11: proposal.ProposalService.SaveTemplate:input_type -> proposal.SaveTemplateRequest
-	8,  // 12: proposal.ProposalService.GetTemplatesForFreelancer:input_type -> proposal.GetTemplatesRequest
-	11, // 13: proposal.ProposalService.ListProposals:input_type -> proposal.ListProposalsRequest
-	1,  // 14: proposal.ProposalService.CreateProposal:output_type -> proposal.CreateProposalResponse
-	3,  // 15: proposal.ProposalService.GetProposalByID:output_type -> proposal.GetProposalResponse
-	5,  // 16: proposal.ProposalService.UpdateProposal:output_type -> proposal.UpdateProposalResponse
-	7,  // 17: proposal.ProposalService.SaveTemplate:output_type -> proposal.SaveTemplateResponse
-	9,  // 18: proposal.ProposalService.GetTemplatesForFreelancer:output_type -> proposal.GetTemplatesResponse
-	12, // 19: proposal.ProposalService.ListProposals:output_type -> proposal.ListProposalsResponse
-	14, // [14:20] is the sub-list for method output_type
-	8,  // [8:14] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	14, // 3: proposal.GetProposalResponse.deadline:type_name -> google.protobuf.Timestamp
+	14, // 4: proposal.UpdateProposalRequest.deadline:type_name -> google.protobuf.Timestamp
+	10, // 5: proposal.GetTemplatesResponse.templates:type_name -> proposal.Template
+	13, // 6: proposal.ListProposalsResponse.proposals:type_name -> proposal.Proposal
+	14, // 7: proposal.Proposal.created_at:type_name -> google.protobuf.Timestamp
+	14, // 8: proposal.Proposal.updated_at:type_name -> google.protobuf.Timestamp
+	0,  // 9: proposal.ProposalService.CreateProposal:input_type -> proposal.CreateProposalRequest
+	2,  // 10: proposal.ProposalService.GetProposalByID:input_type -> proposal.GetProposalRequest
+	4,  // 11: proposal.ProposalService.UpdateProposal:input_type -> proposal.UpdateProposalRequest
+	6,  // 12: proposal.ProposalService.SaveTemplate:input_type -> proposal.SaveTemplateRequest
+	8,  // 13: proposal.ProposalService.GetTemplatesForFreelancer:input_type -> proposal.GetTemplatesRequest
+	11, // 14: proposal.ProposalService.ListProposals:input_type -> proposal.ListProposalsRequest
+	1,  // 15: proposal.ProposalService.CreateProposal:output_type -> proposal.CreateProposalResponse
+	3,  // 16: proposal.ProposalService.GetProposalByID:output_type -> proposal.GetProposalResponse
+	5,  // 17: proposal.ProposalService.UpdateProposal:output_type -> proposal.UpdateProposalResponse
+	7,  // 18: proposal.ProposalService.SaveTemplate:output_type -> proposal.SaveTemplateResponse
+	9,  // 19: proposal.ProposalService.GetTemplatesForFreelancer:output_type -> proposal.GetTemplatesResponse
+	12, // 20: proposal.ProposalService.ListProposals:output_type -> proposal.ListProposalsResponse
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_proposal_proto_init() }
