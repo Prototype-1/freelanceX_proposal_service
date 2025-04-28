@@ -7,6 +7,8 @@ import (
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/service"
 	pb "github.com/Prototype-1/freelanceX_proposal_service/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
 )
 
 type ProposalHandler struct {
@@ -19,10 +21,22 @@ func NewProposalHandler(service *service.ProposalService) *ProposalHandler {
 }
 
 func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProposalRequest) (*pb.CreateProposalResponse, error) {
+	var templateID primitive.ObjectID
+	var err error
+
+	if req.GetTemplateId() != "" {
+		templateID, err = primitive.ObjectIDFromHex(req.GetTemplateId())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid template ID: %v", err)
+		}
+	} else {
+		templateID = primitive.NilObjectID
+	}
+
 	proposal := model.Proposal{
 		ClientID:     req.GetClientId(),
 		FreelancerID: req.GetFreelancerId(),
-		TemplateID:   primitive.NilObjectID, 
+		TemplateID:   templateID,
 		Title:        req.GetTitle(),
 		Content:      req.GetContent(),
 		Status:       "draft",
