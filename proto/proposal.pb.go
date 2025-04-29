@@ -32,6 +32,7 @@ type CreateProposalRequest struct {
 	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"` // "draft" | "sent" | "accepted" | "rejected"
 	Version       int32                  `protobuf:"varint,7,opt,name=version,proto3" json:"version,omitempty"`
 	Deadline      *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	DeadlineStr   string                 `protobuf:"bytes,9,opt,name=deadline_str,json=deadlineStr,proto3" json:"deadline_str,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -120,6 +121,13 @@ func (x *CreateProposalRequest) GetDeadline() *timestamppb.Timestamp {
 		return x.Deadline
 	}
 	return nil
+}
+
+func (x *CreateProposalRequest) GetDeadlineStr() string {
+	if x != nil {
+		return x.DeadlineStr
+	}
+	return ""
 }
 
 type CreateProposalResponse struct {
@@ -231,6 +239,7 @@ type GetProposalResponse struct {
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	Deadline      *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	DeadlineStr   string                 `protobuf:"bytes,12,opt,name=deadline_str,json=deadlineStr,proto3" json:"deadline_str,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -342,6 +351,13 @@ func (x *GetProposalResponse) GetDeadline() *timestamppb.Timestamp {
 	return nil
 }
 
+func (x *GetProposalResponse) GetDeadlineStr() string {
+	if x != nil {
+		return x.DeadlineStr
+	}
+	return ""
+}
+
 type UpdateProposalRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProposalId    string                 `protobuf:"bytes,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
@@ -349,6 +365,7 @@ type UpdateProposalRequest struct {
 	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	Version       int32                  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 	Deadline      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	DeadlineStr   string                 `protobuf:"bytes,6,opt,name=deadline_str,json=deadlineStr,proto3" json:"deadline_str,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -416,6 +433,13 @@ func (x *UpdateProposalRequest) GetDeadline() *timestamppb.Timestamp {
 		return x.Deadline
 	}
 	return nil
+}
+
+func (x *UpdateProposalRequest) GetDeadlineStr() string {
+	if x != nil {
+		return x.DeadlineStr
+	}
+	return ""
 }
 
 type UpdateProposalResponse struct {
@@ -978,7 +1002,7 @@ var File_proto_proposal_proto protoreflect.FileDescriptor
 
 const file_proto_proposal_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/proposal.proto\x12\bproposal\x1a\x1fgoogle/protobuf/timestamp.proto\"\x94\x02\n" +
+	"\x14proto/proposal.proto\x12\bproposal\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb7\x02\n" +
 	"\x15CreateProposalRequest\x12\x1b\n" +
 	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12#\n" +
 	"\rfreelancer_id\x18\x02 \x01(\tR\ffreelancerId\x12\x1f\n" +
@@ -988,14 +1012,15 @@ const file_proto_proposal_proto_rawDesc = "" +
 	"\acontent\x18\x05 \x01(\tR\acontent\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\tR\x06status\x12\x18\n" +
 	"\aversion\x18\a \x01(\x05R\aversion\x126\n" +
-	"\bdeadline\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\"Q\n" +
+	"\bdeadline\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\x12!\n" +
+	"\fdeadline_str\x18\t \x01(\tR\vdeadlineStr\"Q\n" +
 	"\x16CreateProposalResponse\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
 	"proposalId\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"5\n" +
 	"\x12GetProposalRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
-	"proposalId\"\xa9\x03\n" +
+	"proposalId\"\xcc\x03\n" +
 	"\x13GetProposalResponse\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
 	"proposalId\x12\x1b\n" +
@@ -1012,14 +1037,16 @@ const file_proto_proposal_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\n" +
 	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
-	"\bdeadline\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\"\xba\x01\n" +
+	"\bdeadline\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\x12!\n" +
+	"\fdeadline_str\x18\f \x01(\tR\vdeadlineStr\"\xdd\x01\n" +
 	"\x15UpdateProposalRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
 	"proposalId\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x18\n" +
 	"\aversion\x18\x04 \x01(\x05R\aversion\x126\n" +
-	"\bdeadline\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\"r\n" +
+	"\bdeadline\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\bdeadline\x12!\n" +
+	"\fdeadline_str\x18\x06 \x01(\tR\vdeadlineStr\"r\n" +
 	"\x16UpdateProposalResponse\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\tR\n" +
 	"proposalId\x12\x16\n" +

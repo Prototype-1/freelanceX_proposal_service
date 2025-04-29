@@ -48,6 +48,7 @@ message GetProposalResponse {
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
   google.protobuf.Timestamp deadline = 11;
+  string deadline_str = 12;
 }
 
 message UpdateProposalRequest {

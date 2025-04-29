@@ -30,6 +30,16 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
 		deadline = req.GetDeadline().AsTime()
 	}
 
+if req.GetDeadlineStr() != "" {
+    deadline, err = time.Parse(time.RFC3339, req.GetDeadlineStr())
+    if err != nil {
+        return nil, status.Errorf(codes.InvalidArgument, "invalid deadline format: %v", err)
+    }
+} else if req.GetDeadline() != nil {
+    deadline = req.GetDeadline().AsTime()
+} else {
+    deadline = time.Now()
+}
 
 	if req.GetTemplateId() != "" {
 		templateID, err = primitive.ObjectIDFromHex(req.GetTemplateId())
@@ -77,6 +87,8 @@ func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetPropos
 		Content:       proposal.Content,
 		Status:        proposal.Status,
 		Version:       int32(proposal.Version),
+		Deadline: timestamppb.New(proposal.Deadline),
+		DeadlineStr:  proposal.Deadline.Format(time.RFC3339),
 		CreatedAt:     timestamppb.New(proposal.CreatedAt),
 		UpdatedAt:     timestamppb.New(proposal.UpdatedAt),
 	}, nil
