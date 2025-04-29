@@ -64,7 +64,6 @@ func (r *ProposalRepository) UpdateProposal(ctx context.Context, proposalID stri
 		"content":      update.Content,
 		"status":       update.Status,
 		"updated_at":   time.Now(),
-		"version":      bson.M{"$inc": 1},
 	}
 
 	if !update.Deadline.IsZero() {

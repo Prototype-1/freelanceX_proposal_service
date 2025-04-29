@@ -34,6 +34,18 @@ func (s *ProposalService) UpdateProposal(ctx context.Context, id string, updated
 		return nil, fmt.Errorf("cannot set the deadline to a past date")
 	}
 
+	validStatuses := map[string]bool{
+		"draft":    true,
+		"sent":     true,
+		"accepted": true,
+		"rejected": true,
+		"expired": true,
+	}
+	if updatedProposal.Status != "" && !validStatuses[updatedProposal.Status] {
+		return nil, fmt.Errorf("invalid status: %s", updatedProposal.Status)
+	}
+
+	updatedProposal.UpdatedAt = time.Now()
 	return s.repo.UpdateProposal(ctx, id, updatedProposal)
 }
 
@@ -41,6 +53,10 @@ func (s *ProposalService) SaveTemplate(ctx context.Context, template model.Templ
 	if template.OwnerID == "" || template.Title == "" {
 		return nil, errors.New("missing required fields for template")
 	}
+	now := time.Now()
+	template.CreatedAt = now
+	template.UpdatedAt = now
+
 	return s.repo.SaveTemplate(ctx, template)
 }
 
