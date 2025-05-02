@@ -25,19 +25,15 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
 	var templateID primitive.ObjectID
 	var err error
 
-	deadline := time.Time{}
-	if req.GetDeadline() != nil {
+	var deadline time.Time
+	if req.GetDeadlineStr() != "" {
+		deadline, err = time.Parse(time.RFC3339, req.GetDeadlineStr())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid deadline format: %v", err)
+		}
+	} else if req.GetDeadline() != nil {
 		deadline = req.GetDeadline().AsTime()
-	}
-
-if req.GetDeadlineStr() != "" {
-    deadline, err = time.Parse(time.RFC3339, req.GetDeadlineStr())
-    if err != nil {
-        return nil, status.Errorf(codes.InvalidArgument, "invalid deadline format: %v", err)
-    }
-} else if req.GetDeadline() != nil {
-    deadline = req.GetDeadline().AsTime()
-} else {
+	}else {
     deadline = time.Now()
 }
 
@@ -56,7 +52,7 @@ if req.GetDeadlineStr() != "" {
 		TemplateID:   templateID,
 		Title:        req.GetTitle(),
 		Content:      req.GetContent(),
-		Status:       "draft",
+		Status: "draft",
 		Version:      1,
 		Deadline:     deadline,
 	}
