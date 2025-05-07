@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
 	"time"
+	"google.golang.org/grpc/metadata"
+	"strings"
 )
 
 type ProposalHandler struct {
@@ -21,7 +23,23 @@ func NewProposalHandler(service *service.ProposalService) *ProposalHandler {
 	return &ProposalHandler{service: service}
 }
 
+func extractRole(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	roles := md.Get("role")
+	if len(roles) == 0 {
+		return ""
+	}
+	return strings.ToLower(roles[0])
+}
+
 func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProposalRequest) (*pb.CreateProposalResponse, error) {
+	if extractRole(ctx) != "freelancer" {
+		return nil, status.Error(codes.PermissionDenied, "only freelancers can create proposals")
+	}
+
 	var templateID primitive.ObjectID
 	var err error
 
@@ -69,6 +87,11 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
 }
 
 func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetProposalRequest) (*pb.GetProposalResponse, error) {
+	role := extractRole(ctx)
+	if role != "freelancer" && role != "client" {
+		return nil, status.Error(codes.PermissionDenied, "you are unauthorized to get proposal")
+	}
+
 	proposal, err := h.service.GetProposalByID(ctx, req.GetProposalId())
 	if err != nil {
 		return nil, err
@@ -91,6 +114,8 @@ func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetPropos
 }
 
 func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProposalRequest) (*pb.UpdateProposalResponse, error) {
+	role := extractRole(ctx)
+
 	update := model.Proposal{
 		Title:   req.GetTitle(),
 		Content: req.GetContent(),
@@ -98,6 +123,17 @@ func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProp
 
 	if req.GetDeadline() != nil {
 		update.Deadline = req.GetDeadline().AsTime()
+	}
+
+	if role == "client" {
+		if req.GetTitle() != "" || req.GetContent() != "" || req.GetDeadline() != nil {
+			return nil, status.Error(codes.PermissionDenied, "clients can only update status (via Kafka)")
+		}
+		// We will add status auto-update via Kafka later.
+	}
+
+	if role != "freelancer" && role != "client" {
+		return nil, status.Error(codes.PermissionDenied, "unauthorized to update proposal")
 	}
 
 	updatedProposal, err := h.service.UpdateProposal(ctx, req.GetProposalId(), update)
@@ -113,6 +149,10 @@ func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProp
 }
 
 func (h *ProposalHandler) SaveTemplate(ctx context.Context, req *pb.SaveTemplateRequest) (*pb.SaveTemplateResponse, error) {
+	if extractRole(ctx) != "freelancer" {
+		return nil, status.Error(codes.PermissionDenied, "only freelancers can save templates")
+	}
+
 	template := model.Template{
 		OwnerID: req.GetFreelancerId(),
 		Title:   req.GetTitle(),
@@ -135,6 +175,10 @@ func (h *ProposalHandler) SaveTemplate(ctx context.Context, req *pb.SaveTemplate
 }
 
 func (h *ProposalHandler) GetTemplatesForFreelancer(ctx context.Context, req *pb.GetTemplatesRequest) (*pb.GetTemplatesResponse, error) {
+	if extractRole(ctx) != "freelancer" {
+		return nil, status.Error(codes.PermissionDenied, "only freelancers can view templates")
+	}
+
 	templates, err := h.service.GetTemplatesForFreelancer(ctx, req.GetFreelancerId())
 	if err != nil {
 		return nil, err
@@ -160,6 +204,10 @@ func (h *ProposalHandler) GetTemplatesForFreelancer(ctx context.Context, req *pb
 }
 
 func (h *ProposalHandler) ListProposals(ctx context.Context, req *pb.ListProposalsRequest) (*pb.ListProposalsResponse, error) {
+	if extractRole(ctx) != "admin" {
+		return nil, status.Error(codes.PermissionDenied, "only admins can list proposals")
+	}
+	
     filters := make(map[string]interface{})
     if req.GetClientId() != "" {
         filters["client_id"] = req.GetClientId()
