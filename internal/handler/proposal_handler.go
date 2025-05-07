@@ -40,10 +40,9 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
 		return nil, status.Error(codes.PermissionDenied, "only freelancers can create proposals")
 	}
 
-	var templateID primitive.ObjectID
+	var deadline time.Time
 	var err error
 
-	var deadline time.Time
 	if req.GetDeadlineStr() != "" {
 		deadline, err = time.Parse(time.RFC3339, req.GetDeadlineStr())
 		if err != nil {
@@ -55,24 +54,29 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
     deadline = time.Now()
 }
 
+var sections []model.Section
+
 	if req.GetTemplateId() != "" {
-		templateID, err = primitive.ObjectIDFromHex(req.GetTemplateId())
+		templateID, err := primitive.ObjectIDFromHex(req.GetTemplateId())
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid template ID: %v", err)
 		}
-	} else {
-		templateID = primitive.NilObjectID
-	}
+		template, err := h.service.GetTemplateByID(ctx, templateID)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to fetch template: %v", err)
+		}
+		sections = template.Sections
+	} 
 
 	proposal := model.Proposal{
 		ClientID:     req.GetClientId(),
 		FreelancerID: req.GetFreelancerId(),
-		TemplateID:   templateID,
 		Title:        req.GetTitle(),
 		Content:      req.GetContent(),
 		Status: "draft",
 		Version:      1,
 		Deadline:     deadline,
+		Sections:     sections,
 	}
 
 	createdProposal, err := h.service.CreateProposal(ctx, proposal)

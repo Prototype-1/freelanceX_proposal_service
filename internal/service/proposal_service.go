@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/model"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/repository"
 )
 
@@ -66,6 +67,10 @@ func (s *ProposalService) GetTemplatesForFreelancer(ctx context.Context, freelan
 		return nil, err
 	}
 	return templates, nil
+}
+
+func (s *ProposalService) GetTemplateByID(ctx context.Context, id primitive.ObjectID) (*model.Template, error) {
+	return s.repo.GetTemplateByID(ctx, id)
 }
 
 func (s *ProposalService) GetProposals(ctx context.Context, filters map[string]interface{}, skip, limit int64) ([]*model.Proposal, error) {

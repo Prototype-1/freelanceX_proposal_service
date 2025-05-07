@@ -132,6 +132,16 @@ func (r *ProposalRepository) SaveTemplate(ctx context.Context, template model.Te
 	return &template, nil
 }
 
+func (r *ProposalRepository) GetTemplateByID(ctx context.Context, id primitive.ObjectID) (*model.Template, error) {
+	var template model.Template
+	collection := r.client.Database("freelanceX_proposals").Collection("templates")
+	err := collection.FindOne(ctx, bson.M{"_id": id}).Decode(&template)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find template: %w", err)
+	}
+	return &template, nil
+}
+
 func (r *ProposalRepository) GetTemplatesForFreelancer(ctx context.Context, freelancerID string) ([]*model.Template, error) {
 	collection := r.client.Database("freelanceX_proposals").Collection("templates")
 
