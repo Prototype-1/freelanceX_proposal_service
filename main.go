@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"time"
+	"context"
 	"github.com/Prototype-1/freelanceX_proposal_service/config"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/handler"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/repository"
@@ -17,28 +18,25 @@ import (
 
 func main() {
 	cfg := config.LoadConfig()
-
-	client, err := mongo.Connect(nil, options.Client().ApplyURI(cfg.MongoURI))
+	ctx := context.TODO()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.MongoURI))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
-	defer client.Disconnect(nil)
+	defer client.Disconnect(ctx)
 
 	proposalRepo := repository.NewProposalRepository(client)
 	proposalService := service.NewProposalService(proposalRepo)
 	proposalHandler := handler.NewProposalHandler(proposalService)
 
 	go func() {
-		ticker := time.NewTicker(5 * time.Minute) // Run every 5 minutes
+		ticker := time.NewTicker(5 * time.Minute)
 		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				log.Println("Checking and expiring proposals...")
-				if err := proposalRepo.ExpireProposals(nil); err != nil {
-					log.Printf("Error expiring proposals: %v", err)
-				}
+	
+		for range ticker.C {
+			log.Println("Checking and expiring proposals...")
+			if err := proposalRepo.ExpireProposals(ctx); err != nil {
+				log.Printf("Error expiring proposals: %v", err)
 			}
 		}
 	}()
