@@ -6,10 +6,12 @@ import (
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/model"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/service"
 	pb "github.com/Prototype-1/freelanceX_proposal_service/proto"
+	"github.com/Prototype-1/freelanceX_proposal_service/kafka"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
 	"time"
+	"log"
 	"google.golang.org/grpc/metadata"
 	"strings"
 )
@@ -84,6 +86,22 @@ var sections []model.Section
 		return nil, err
 	}
 
+	event := kafka.ProposalEvent{
+		ProposalID:   createdProposal.ID.Hex(),
+		ClientID:     createdProposal.ClientID,
+		FreelancerID: createdProposal.FreelancerID,
+		Title:        createdProposal.Title,
+		EventType:    "proposal.created",
+		Status:       "sent",
+	}
+
+	go func() {
+		err := kafka.ProduceProposalEvent("localhost:9092", "proposal-events", event)
+		if err != nil {
+			log.Printf("failed to produce proposal.created event: %v", err)
+		}
+	}()
+
 	return &pb.CreateProposalResponse{
 		ProposalId: createdProposal.ID.Hex(),
 		Status:     "created",
@@ -133,7 +151,12 @@ func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProp
 		if req.GetTitle() != "" || req.GetContent() != "" || req.GetDeadline() != nil {
 			return nil, status.Error(codes.PermissionDenied, "clients can only update status")
 		}
-		// We will add status auto-update via Kafka later.
+newStatus := req.GetStatus()
+if newStatus != "accepted" && newStatus != "rejected" {
+    return nil, status.Error(codes.PermissionDenied, "clients can only set status to accepted or rejected")
+}
+update.Status = newStatus
+		
 	}
 
 	if role != "freelancer" && role != "client" {
@@ -143,6 +166,23 @@ func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProp
 	updatedProposal, err := h.service.UpdateProposal(ctx, req.GetProposalId(), update)
 	if err != nil {
 		return nil, err
+	}
+
+	if update.Status != "" {
+		event := kafka.ProposalEvent{
+			ProposalID:   updatedProposal.ID.Hex(),
+			ClientID:     updatedProposal.ClientID,
+			FreelancerID: updatedProposal.FreelancerID,
+			Title:        updatedProposal.Title,
+			EventType:    "proposal.updated",
+			Status:       updatedProposal.Status,
+		}
+
+		go func() {
+			if err := kafka.ProduceProposalEvent("localhost:9092", "proposal-events", event); err != nil {
+				log.Printf("failed to produce proposal.updated event: %v", err)
+			}
+		}()
 	}
 
 	return &pb.UpdateProposalResponse{

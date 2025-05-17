@@ -58,6 +58,7 @@ message UpdateProposalRequest {
   int32 version = 4;
   google.protobuf.Timestamp deadline = 5;
   string deadline_str = 6; 
+  string status = 7; 
 }
 
 message UpdateProposalResponse {
