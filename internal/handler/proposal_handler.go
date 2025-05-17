@@ -75,7 +75,7 @@ var sections []model.Section
 		FreelancerID: req.GetFreelancerId(),
 		Title:        req.GetTitle(),
 		Content:      req.GetContent(),
-		Status: "draft",
+		Status: 		"draft",
 		Version:      1,
 		Deadline:     deadline,
 		Sections:     sections,
@@ -100,7 +100,13 @@ var sections []model.Section
 		if err != nil {
 			log.Printf("failed to produce proposal.created event: %v", err)
 		}
-	}()
+	_, err = h.service.UpdateProposal(ctx, createdProposal.ID.Hex(), model.Proposal{
+		Status: "sent",
+	})
+	if err != nil {
+		log.Printf("failed to update proposal status to sent: %v", err)
+	}
+}()
 
 	return &pb.CreateProposalResponse{
 		ProposalId: createdProposal.ID.Hex(),

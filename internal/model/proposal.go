@@ -12,7 +12,7 @@ type Proposal struct {
 	TemplateID  primitive.ObjectID `bson:"template_id"`
 	Title       string             `bson:"title"`
 	Content     string             `bson:"content"`
-	Status      string             `bson:"status"` // "draft" | "sent" | "accepted" | "rejected"
+	Status      string             `bson:"status"` 
 	Version     int                `bson:"version"`
 	Deadline     time.Time          `bson:"deadline"`
 	Sections  []Section  `bson:"sections,omitempty"`
