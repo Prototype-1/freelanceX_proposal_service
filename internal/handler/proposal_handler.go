@@ -118,8 +118,8 @@ func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetPropos
 }
 
 func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProposalRequest) (*pb.UpdateProposalResponse, error) {
+	
 	role := extractRole(ctx)
-
 	update := model.Proposal{
 		Title:   req.GetTitle(),
 		Content: req.GetContent(),
@@ -131,7 +131,7 @@ func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProp
 
 	if role == "client" {
 		if req.GetTitle() != "" || req.GetContent() != "" || req.GetDeadline() != nil {
-			return nil, status.Error(codes.PermissionDenied, "clients can only update status (via Kafka)")
+			return nil, status.Error(codes.PermissionDenied, "clients can only update status")
 		}
 		// We will add status auto-update via Kafka later.
 	}
