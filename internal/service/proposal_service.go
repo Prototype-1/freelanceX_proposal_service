@@ -34,12 +34,6 @@ func (s *ProposalService) UpdateProposal(ctx context.Context, id string, updated
 	if !updatedProposal.Deadline.IsZero() && updatedProposal.Deadline.Before(time.Now()) {
 		return nil, fmt.Errorf("cannot set the deadline to a past date")
 	}
-
-	 userRole, ok := ctx.Value("userRole").(string)
-    if !ok {
-        userRole = "client" 
-    }
-    
 	validStatuses := map[string]bool{
 		"draft":    true,
 		"sent":     true,
@@ -47,15 +41,7 @@ func (s *ProposalService) UpdateProposal(ctx context.Context, id string, updated
 		"rejected": true,
 		"expired": true,
 	}
-
-	  if userRole == "client" {
-        if updatedProposal.Status != "" && 
-           updatedProposal.Status != "accepted" && 
-           updatedProposal.Status != "rejected" {
-            return nil, fmt.Errorf("clients can only set status to 'accepted' or 'rejected'")
-        }
-    }
-
+	
 	if updatedProposal.Status != "" && !validStatuses[updatedProposal.Status] {
 		return nil, fmt.Errorf("invalid status: %s", updatedProposal.Status)
 	}
