@@ -61,7 +61,7 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
     title := strings.TrimSpace(req.GetTitle())
     content := strings.TrimSpace(req.GetContent())
    
-    if req.GetTemplateId() != "" && req.GetTemplateId() != "000000000000000000000000" {
+    if req.GetTemplateId() != ""  {
         templateID, err := primitive.ObjectIDFromHex(req.GetTemplateId())
         if err != nil || templateID == primitive.NilObjectID {
             return nil, status.Errorf(codes.InvalidArgument, "invalid template ID")
