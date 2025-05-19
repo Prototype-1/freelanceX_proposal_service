@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/grpc/status"
+    "google.golang.org/grpc/codes"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/repository"
 )
 
@@ -19,6 +23,8 @@ func NewProposalService(repo *repository.ProposalRepository) *ProposalService {
 }
 
 func (s *ProposalService) CreateProposal(ctx context.Context, proposal model.Proposal) (*model.Proposal, error) {
+	log.Printf("Creating proposal with title: %s, content: %s, sections: %+v", proposal.Title, proposal.Content, proposal.Sections)
+
 	if proposal.ClientID == "" || proposal.FreelancerID == "" || proposal.Title == "" {
 		return nil, errors.New("missing required fields")
 	}
@@ -70,7 +76,14 @@ func (s *ProposalService) GetTemplatesForFreelancer(ctx context.Context, freelan
 }
 
 func (s *ProposalService) GetTemplateByID(ctx context.Context, id primitive.ObjectID) (*model.Template, error) {
-	return s.repo.GetTemplateByID(ctx, id)
+	template, err := s.repo.GetTemplateByID(ctx, id)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, status.Errorf(codes.NotFound, "template not found")
+		}
+		return nil, err
+	}
+	return template, nil
 }
 
 func (s *ProposalService) GetProposals(ctx context.Context, filters map[string]interface{}, skip, limit int64) ([]*model.Proposal, error) {

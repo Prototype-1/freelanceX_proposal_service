@@ -12,6 +12,7 @@ import (
     "google.golang.org/grpc/status"
 	"time"
 	"log"
+	"fmt"
 	"google.golang.org/grpc/metadata"
 	"strings"
 )
@@ -38,80 +39,82 @@ func extractRole(ctx context.Context) string {
 }
 
 func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProposalRequest) (*pb.CreateProposalResponse, error) {
-	if extractRole(ctx) != "freelancer" {
-		return nil, status.Error(codes.PermissionDenied, "only freelancers can create proposals")
-	}
+    if extractRole(ctx) != "freelancer" {
+        return nil, status.Error(codes.PermissionDenied, "only freelancers can create proposals")
+    }
+    var deadline time.Time
+    var err error
+    if req.GetDeadlineStr() != "" {
+        deadline, err = time.Parse(time.RFC3339, req.GetDeadlineStr())
+        if err != nil {
+            return nil, status.Errorf(codes.InvalidArgument, "invalid deadline format: %v", err)
+        }
+    } else if req.GetDeadline() != nil {
+        deadline = req.GetDeadline().AsTime()
+    } else {
+        deadline = time.Now()
+    }
+    if req.GetTemplateId() == ""  {
+        return nil, status.Errorf(codes.InvalidArgument, "template_id must be provided")
+    }
+	 var sections []model.Section
+    title := strings.TrimSpace(req.GetTitle())
+    content := strings.TrimSpace(req.GetContent())
+   
+    if req.GetTemplateId() != "" && req.GetTemplateId() != "000000000000000000000000" {
+        templateID, err := primitive.ObjectIDFromHex(req.GetTemplateId())
+        if err != nil || templateID == primitive.NilObjectID {
+            return nil, status.Errorf(codes.InvalidArgument, "invalid template ID")
+        }
+        template, err := h.service.GetTemplateByID(ctx, templateID)
+        if err != nil {
+            return nil, status.Errorf(codes.NotFound, "template not found")
+        }
+        sections = template.Sections
+        title = template.Title
+        var sb strings.Builder
+        for _, sec := range template.Sections {
+            sb.WriteString(fmt.Sprintf("%s\n%s\n\n", sec.Heading, sec.Body))
+        }
+        content = sb.String()
+    }
 
-	var deadline time.Time
-	var err error
-
-	if req.GetDeadlineStr() != "" {
-		deadline, err = time.Parse(time.RFC3339, req.GetDeadlineStr())
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid deadline format: %v", err)
-		}
-	} else if req.GetDeadline() != nil {
-		deadline = req.GetDeadline().AsTime()
-	}else {
-    deadline = time.Now()
-}
-
-var sections []model.Section
-
-	if req.GetTemplateId() != "" {
-		templateID, err := primitive.ObjectIDFromHex(req.GetTemplateId())
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid template ID: %v", err)
-		}
-		template, err := h.service.GetTemplateByID(ctx, templateID)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to fetch template: %v", err)
-		}
-		sections = template.Sections
-	} 
-
-	proposal := model.Proposal{
-		ClientID:     req.GetClientId(),
-		FreelancerID: req.GetFreelancerId(),
-		Title:        req.GetTitle(),
-		Content:      req.GetContent(),
-		Status: 		"draft",
-		Version:      1,
-		Deadline:     deadline,
-		Sections:     sections,
-	}
-
-	createdProposal, err := h.service.CreateProposal(ctx, proposal)
-	if err != nil {
-		return nil, err
-	}
-
-	event := kafka.ProposalEvent{
-		ProposalID:   createdProposal.ID.Hex(),
-		ClientID:     createdProposal.ClientID,
-		FreelancerID: createdProposal.FreelancerID,
-		Title:        createdProposal.Title,
-		EventType:    "proposal.created",
-		Status:       "sent",
-	}
-
-	go func() {
-		err := kafka.ProduceProposalEvent("localhost:9092", "proposal-events", event)
-		if err != nil {
-			log.Printf("failed to produce proposal.created event: %v", err)
-		}
-	_, err = h.service.UpdateProposal(ctx, createdProposal.ID.Hex(), model.Proposal{
-		Status: "sent",
-	})
-	if err != nil {
-		log.Printf("failed to update proposal status to sent: %v", err)
-	}
-}()
-
-	return &pb.CreateProposalResponse{
-		ProposalId: createdProposal.ID.Hex(),
-		Status:     "created",
-	}, nil
+    proposal := model.Proposal{
+        ClientID:     strings.TrimSpace(req.GetClientId()),
+        FreelancerID: strings.TrimSpace(req.GetFreelancerId()),
+        Title:        title,
+        Content:      content,
+        Status:       "draft",
+        Version:      1,
+        Deadline:     deadline,
+        Sections:     sections,
+    }
+    createdProposal, err := h.service.CreateProposal(ctx, proposal)
+    if err != nil {
+        return nil, err
+    }
+    go func() {
+        bgCtx := context.Background()
+        event := kafka.ProposalEvent{
+            ProposalID:   createdProposal.ID.Hex(),
+            ClientID:     createdProposal.ClientID,
+            FreelancerID: createdProposal.FreelancerID,
+            Title:        createdProposal.Title,
+            EventType:    "proposal.created",
+            Status:       "sent",
+        }
+        if err := kafka.ProduceProposalEvent("localhost:9092", "proposal-events", event); err != nil {
+            log.Printf("failed to produce proposal.created event: %v", err)
+            return
+        }
+        if _, err := h.service.UpdateProposal(bgCtx, createdProposal.ID.Hex(), model.Proposal{Status: "sent"}); err != nil {
+            log.Printf("failed to update proposal status to sent: %v", err)
+        }
+    }()
+    return &pb.CreateProposalResponse{
+        ProposalId: createdProposal.ID.Hex(),
+        Status:     "created",
+    }, nil
 }
 
 func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetProposalRequest) (*pb.GetProposalResponse, error) {

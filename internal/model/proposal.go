@@ -9,7 +9,7 @@ type Proposal struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	ClientID    string             `bson:"client_id"`
 	FreelancerID string           `bson:"freelancer_id"`
-	TemplateID  primitive.ObjectID `bson:"template_id"`
+TemplateID   *primitive.ObjectID `bson:"template_id,omitempty"`
 	Title       string             `bson:"title"`
 	Content     string             `bson:"content"`
 	Status      string             `bson:"status"` 
@@ -24,6 +24,7 @@ type Template struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	OwnerID   string             `bson:"owner_id"`
 	Title     string             `bson:"title"`
+	Description string             `bson:"description"`
 	Sections  []Section          `bson:"sections"`
 	CreatedAt time.Time          `bson:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at"`
