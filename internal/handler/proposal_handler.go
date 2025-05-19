@@ -54,8 +54,8 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
     } else {
         deadline = time.Now()
     }
-    if req.GetTemplateId() == ""  {
-        return nil, status.Errorf(codes.InvalidArgument, "template_id must be provided")
+    if req.GetTemplateId() == ""  && (strings.TrimSpace(req.GetTitle()) == "" || strings.TrimSpace(req.GetContent()) == "") {
+		return nil, status.Errorf(codes.InvalidArgument, "either template_id or both title and content must be provided")
     }
 	 var sections []model.Section
     title := strings.TrimSpace(req.GetTitle())
