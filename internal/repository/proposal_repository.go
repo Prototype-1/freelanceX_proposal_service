@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"log"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,6 +22,9 @@ func NewProposalRepository(client *mongo.Client) *ProposalRepository {
 
 func (r *ProposalRepository) CreateProposal(ctx context.Context, proposal model.Proposal) (*model.Proposal, error) {
 	collection := r.client.Database("freelanceX_proposals").Collection("proposals")
+
+	log.Printf("Repository - About to save proposal: %+v", proposal)
+
 	proposal.ID = primitive.NewObjectID()
 	proposal.CreatedAt = time.Now()
 	proposal.UpdatedAt = time.Now()

@@ -42,6 +42,7 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
     if extractRole(ctx) != "freelancer" {
         return nil, status.Error(codes.PermissionDenied, "only freelancers can create proposals")
     }
+    
     var deadline time.Time
     var err error
     if req.GetDeadlineStr() != "" {
@@ -54,45 +55,53 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
     } else {
         deadline = time.Now()
     }
-    if req.GetTemplateId() == ""  && (strings.TrimSpace(req.GetTitle()) == "" || strings.TrimSpace(req.GetContent()) == "") {
-		return nil, status.Errorf(codes.InvalidArgument, "either template_id or both title and content must be provided")
-    }
-	 var sections []model.Section
+    
     title := strings.TrimSpace(req.GetTitle())
     content := strings.TrimSpace(req.GetContent())
-   
-    if req.GetTemplateId() != ""  {
+    
+    if req.GetTemplateId() == "" && (title == "" || content == "") {
+        return nil, status.Errorf(codes.InvalidArgument, "either template_id or both title and content must be provided")
+    }
+    
+    var sections []model.Section
+    
+    if req.GetTemplateId() != "" {
         templateID, err := primitive.ObjectIDFromHex(req.GetTemplateId())
         if err != nil || templateID == primitive.NilObjectID {
             return nil, status.Errorf(codes.InvalidArgument, "invalid template ID")
         }
+        
         template, err := h.service.GetTemplateByID(ctx, templateID)
         if err != nil {
             return nil, status.Errorf(codes.NotFound, "template not found")
         }
+        
         sections = template.Sections
         title = template.Title
+        
         var sb strings.Builder
         for _, sec := range template.Sections {
             sb.WriteString(fmt.Sprintf("%s\n%s\n\n", sec.Heading, sec.Body))
         }
         content = sb.String()
     }
-
+    
     proposal := model.Proposal{
         ClientID:     strings.TrimSpace(req.GetClientId()),
         FreelancerID: strings.TrimSpace(req.GetFreelancerId()),
-        Title:        title,
-        Content:      content,
+        Title:        title,  
+        Content:      content, 
         Status:       "draft",
         Version:      1,
         Deadline:     deadline,
         Sections:     sections,
     }
+    
     createdProposal, err := h.service.CreateProposal(ctx, proposal)
     if err != nil {
         return nil, err
     }
+    
     go func() {
         bgCtx := context.Background()
         event := kafka.ProposalEvent{
@@ -111,6 +120,7 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
             log.Printf("failed to update proposal status to sent: %v", err)
         }
     }()
+    
     return &pb.CreateProposalResponse{
         ProposalId: createdProposal.ID.Hex(),
         Status:     "created",
@@ -128,20 +138,25 @@ func (h *ProposalHandler) GetProposalByID(ctx context.Context, req *pb.GetPropos
 		return nil, err
 	}
 
-	return &pb.GetProposalResponse{
-		ProposalId:    proposal.ID.Hex(),
-		ClientId:      proposal.ClientID,
-		FreelancerId:  proposal.FreelancerID,
-		TemplateId:    proposal.TemplateID.Hex(),
-		Title:         proposal.Title,
-		Content:       proposal.Content,
-		Status:        proposal.Status,
-		Version:       int32(proposal.Version),
-		Deadline: timestamppb.New(proposal.Deadline),
-		DeadlineStr:  proposal.Deadline.Format(time.RFC3339),
-		CreatedAt:     timestamppb.New(proposal.CreatedAt),
-		UpdatedAt:     timestamppb.New(proposal.UpdatedAt),
-	}, nil
+var templateID string
+if proposal.TemplateID != nil {
+	templateID = proposal.TemplateID.Hex()
+}
+
+return &pb.GetProposalResponse{
+	ProposalId:    proposal.ID.Hex(),
+	ClientId:      proposal.ClientID,
+	FreelancerId:  proposal.FreelancerID,
+	TemplateId:    templateID,
+	Title:         proposal.Title,
+	Content:       proposal.Content,
+	Status:        proposal.Status,
+	Version:       int32(proposal.Version),
+	Deadline:      timestamppb.New(proposal.Deadline),
+	DeadlineStr:   proposal.Deadline.Format(time.RFC3339),
+	CreatedAt:     timestamppb.New(proposal.CreatedAt),
+	UpdatedAt:     timestamppb.New(proposal.UpdatedAt),
+}, nil
 }
 
 func (h *ProposalHandler) UpdateProposal(ctx context.Context, req *pb.UpdateProposalRequest) (*pb.UpdateProposalResponse, error) {
