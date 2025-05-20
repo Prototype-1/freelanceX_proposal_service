@@ -67,11 +67,10 @@ if req.GetContent() != nil {
 }
     
     if req.GetTemplateId() == "" && (title == "" || content == "") {
-        return nil, status.Errorf(codes.InvalidArgument, "either template_id or both title and content must be provided")
+        return nil, status.Errorf(codes.InvalidArgument, "template_id must be provided")
     }
     
-    var sections []model.Section
-    
+    var sections []model.Section  
     if req.GetTemplateId() != "" {
         templateID, err := primitive.ObjectIDFromHex(req.GetTemplateId())
         if err != nil || templateID == primitive.NilObjectID {
@@ -88,7 +87,7 @@ if req.GetContent() != nil {
         
         var sb strings.Builder
         for _, sec := range template.Sections {
-            sb.WriteString(fmt.Sprintf("%s\n%s\n\n", sec.Heading, sec.Body))
+            sb.WriteString(fmt.Sprintln(sec.Heading, sec.Body))
         }
         content = sb.String()
     }
