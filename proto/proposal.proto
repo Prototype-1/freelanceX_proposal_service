@@ -3,6 +3,8 @@ syntax = "proto3";
 package proposal;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
 
 option go_package = "./proto;proposal";
 
@@ -19,8 +21,8 @@ message CreateProposalRequest {
   string client_id = 1;
   string freelancer_id = 2;
   string template_id = 3;
-  string title = 4;
-  string content = 5;
+  google.protobuf.StringValue title = 4;  
+  google.protobuf.StringValue content = 5;
   string status = 6; 
   int32 version = 7;
   google.protobuf.Timestamp deadline = 8;
@@ -46,8 +48,8 @@ message GetProposalResponse {
   string client_id = 2;
   string freelancer_id = 3;
   string template_id = 4;
-  string title = 5;
-  string content = 6;
+  google.protobuf.StringValue title = 5;  
+  google.protobuf.StringValue content = 6;
   string status = 7;
   int32 version = 8;
   google.protobuf.Timestamp created_at = 9;

@@ -5,6 +5,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/model"
 	"github.com/Prototype-1/freelanceX_proposal_service/internal/service"
+	wrapperspb "google.golang.org/protobuf/types/known/wrapperspb"
 	pb "github.com/Prototype-1/freelanceX_proposal_service/proto"
 	"github.com/Prototype-1/freelanceX_proposal_service/kafka"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -56,8 +57,14 @@ func (h *ProposalHandler) CreateProposal(ctx context.Context, req *pb.CreateProp
         deadline = time.Now()
     }
     
-    title := strings.TrimSpace(req.GetTitle())
-    content := strings.TrimSpace(req.GetContent())
+var title string
+if req.GetTitle() != nil {
+    title = strings.TrimSpace(req.GetTitle().GetValue())
+}
+var content string
+if req.GetContent() != nil {
+    content = strings.TrimSpace(req.GetContent().GetValue())
+}
     
     if req.GetTemplateId() == "" && (title == "" || content == "") {
         return nil, status.Errorf(codes.InvalidArgument, "either template_id or both title and content must be provided")
@@ -148,8 +155,8 @@ return &pb.GetProposalResponse{
 	ClientId:      proposal.ClientID,
 	FreelancerId:  proposal.FreelancerID,
 	TemplateId:    templateID,
-	Title:         proposal.Title,
-	Content:       proposal.Content,
+    Title:         wrapperspb.String(proposal.Title),
+    Content:       wrapperspb.String(proposal.Content),
 	Sections: convertSections(proposal.Sections),
 	Status:        proposal.Status,
 	Version:       int32(proposal.Version),
@@ -315,14 +322,19 @@ func (h *ProposalHandler) ListProposals(ctx context.Context, req *pb.ListProposa
 }
 
 func convertSections(sections []model.Section) []*pb.Section {
-	var pbSections []*pb.Section
-	for _, sec := range sections {
-		pbSections = append(pbSections, &pb.Section{
-			Heading: sec.Heading,
-			Body:    sec.Body,
-		})
-	}
-	return pbSections
+    pbSections := make([]*pb.Section, 0)
+
+    if len(sections) == 0 {
+        return []*pb.Section{}  
+    }
+    
+    for _, sec := range sections {
+        pbSections = append(pbSections, &pb.Section{
+            Heading: sec.Heading,
+            Body:    sec.Body,
+        })
+    }
+    return pbSections
 }
 
 
