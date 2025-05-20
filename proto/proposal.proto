@@ -49,6 +49,7 @@ message GetProposalResponse {
   google.protobuf.Timestamp updated_at = 10;
   google.protobuf.Timestamp deadline = 11;
   string deadline_str = 12;
+  repeated Section sections = 13; 
 }
 
 message UpdateProposalRequest {
@@ -115,4 +116,9 @@ message Proposal {
   int32 version = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
+}
+
+message Section {
+  string heading = 1;
+  string body = 2;
 }

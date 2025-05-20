@@ -150,6 +150,7 @@ return &pb.GetProposalResponse{
 	TemplateId:    templateID,
 	Title:         proposal.Title,
 	Content:       proposal.Content,
+	Sections: convertSections(proposal.Sections),
 	Status:        proposal.Status,
 	Version:       int32(proposal.Version),
 	Deadline:      timestamppb.New(proposal.Deadline),
@@ -311,6 +312,17 @@ func (h *ProposalHandler) ListProposals(ctx context.Context, req *pb.ListProposa
     return &pb.ListProposalsResponse{
         Proposals: protoProposals,
     }, nil
+}
+
+func convertSections(sections []model.Section) []*pb.Section {
+	var pbSections []*pb.Section
+	for _, sec := range sections {
+		pbSections = append(pbSections, &pb.Section{
+			Heading: sec.Heading,
+			Body:    sec.Body,
+		})
+	}
+	return pbSections
 }
 
 
