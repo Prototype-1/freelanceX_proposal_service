@@ -21,7 +21,7 @@ message CreateProposalRequest {
   string template_id = 3;
   string title = 4;
   string content = 5;
-  string status = 6; // "draft" | "sent" | "accepted" | "rejected"
+  string status = 6; 
   int32 version = 7;
   google.protobuf.Timestamp deadline = 8;
   string deadline_str = 9;
@@ -34,6 +34,11 @@ message CreateProposalResponse {
 
 message GetProposalRequest {
   string proposal_id = 1;
+}
+
+message Section {
+  string heading = 1;
+  string body = 2;
 }
 
 message GetProposalResponse {
@@ -116,9 +121,4 @@ message Proposal {
   int32 version = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
-}
-
-message Section {
-  string heading = 1;
-  string body = 2;
 }
