@@ -205,7 +205,7 @@ update.Status = newStatus
 			ClientID:     updatedProposal.ClientID,
 			FreelancerID: updatedProposal.FreelancerID,
 			Title:        updatedProposal.Title,
-			EventType:    "proposal.updated",
+			EventType:    "proposal.status.updated",
 			Status:       updatedProposal.Status,
 		}
 
