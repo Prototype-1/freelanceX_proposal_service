@@ -210,7 +210,7 @@ update.Status = newStatus
 		}
 
 		go func() {
-			if err := kafka.ProduceProposalEvent("localhost:9092", "proposal-events", event); err != nil {
+			if err := kafka.ProduceProposalEvent("kafka:9092", "proposal-events", event); err != nil {
 				log.Printf("failed to produce proposal.updated event: %v", err)
 			}
 		}()

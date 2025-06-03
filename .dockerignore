@@ -1,0 +1,26 @@
+# Go-related
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Binaries
+/bin/
+/build/
+/dist/
+
+.git
+.gitignore
+
+# IDE/editor
+*.log
+.vscode/
+.idea/
+*.swp
+
+.DS_Store
+Thumbs.db
+
+vendor/
