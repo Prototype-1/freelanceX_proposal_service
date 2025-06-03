@@ -9,6 +9,7 @@ freelanceX_proposal_service carries proposal related logic where 80% of the oper
 - gRPC
 - MongoDB
 - Protocol Buffers
+- Kafka
 
 ## Folder Structure
 
