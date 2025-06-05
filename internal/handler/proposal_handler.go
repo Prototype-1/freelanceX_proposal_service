@@ -118,7 +118,7 @@ if req.GetContent() != nil {
             EventType:    "proposal.created",
             Status:       "sent",
         }
-        if err := kafka.ProduceProposalEvent("localhost:9092", "proposal-events", event); err != nil {
+        if err := kafka.ProduceProposalEvent("kafka:9092", "proposal-events", event); err != nil {
             log.Printf("failed to produce proposal.created event: %v", err)
             return
         }
