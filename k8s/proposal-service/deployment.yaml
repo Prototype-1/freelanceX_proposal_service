@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proposal-service
+  labels:
+    app: proposal-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proposal-service
+  template:
+    metadata:
+      labels:
+        app: proposal-service
+    spec:
+      containers:
+        - name: proposal-service
+          image: aswinputhukaatil/freelancex_proposal_service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 50052
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: proposal-service-secret
+                  key: MONGO_URI
+            - name: MONGO_DB
+              valueFrom:
+                secretKeyRef:
+                  name: proposal-service-secret
+                  key: MONGO_DB
+            - name: SERVER_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: proposal-service-secret
+                  key: SERVER_PORT
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: proposal-service-secret
+                  key: JWT_SECRET

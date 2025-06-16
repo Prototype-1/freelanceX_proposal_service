@@ -1,0 +1,41 @@
+name: CD - Deploy Proposal Service to GKE
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Get GKE credentials
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: freelancex-cluster
+        location: asia-south1-a
+        project_id: freelancex-463106
+
+    - name: Create/Update K8s secret for proposal-service
+      run: |
+        kubectl create secret generic proposal-service-secret \
+          --from-literal=MONGO_URI="${{ secrets.MONGO_URI }}" \
+          --from-literal=MONGO_DB="${{ secrets.MONGO_DB }}" \
+          --from-literal=SERVER_PORT="${{ secrets.SERVER_PORT }}" \
+          --from-literal=JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Deploy Kubernetes Resources
+      run: |
+        kubectl apply -f k8s/proposal-service/deployment.yaml
+        kubectl apply -f k8s/proposal-service/service.yaml
